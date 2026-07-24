@@ -1,0 +1,152 @@
+-- Delta Executor Compatible - ST HUD Script
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local StarterGui = game:GetService("StarterGui")
+local LocalPlayer = Players.LocalPlayer
+
+-- Notification
+pcall(function()
+    StarterGui:SetCore("SendNotification", {
+        Title = "ST HUD",
+        Text = "Đã tải thành công!",
+        Duration = 3
+    })
+end)
+
+-- Global State
+local isTimeStopped = false
+
+-- UI Setup
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ST_HUD_Delta"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Top Left Title: ST HUD
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "TitleLabel"
+TitleLabel.Size = UDim2.new(0, 130, 0, 35)
+TitleLabel.Position = UDim2.new(0, 10, 0, 10)
+TitleLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TitleLabel.BackgroundTransparency = 0.2
+TitleLabel.TextColor3 = Color3.fromRGB(0, 255, 200)
+TitleLabel.Text = "ST HUD"
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 18
+TitleLabel.Parent = ScreenGui
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = TitleLabel
+
+-- Toggle Menu Button
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Size = UDim2.new(0, 70, 0, 30)
+ToggleButton.Position = UDim2.new(0, 10, 0, 50)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.Text = "Menu"
+ToggleButton.Font = Enum.Font.Gotham
+ToggleButton.TextSize = 14
+ToggleButton.Parent = ScreenGui
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 6)
+ToggleCorner.Parent = ToggleButton
+
+-- Main Menu Frame
+local MenuFrame = Instance.new("Frame")
+MenuFrame.Name = "MenuFrame"
+MenuFrame.Size = UDim2.new(0, 200, 0, 130)
+MenuFrame.Position = UDim2.new(0, 10, 0, 90)
+MenuFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MenuFrame.BackgroundTransparency = 0.1
+MenuFrame.Visible = true
+MenuFrame.Parent = ScreenGui
+
+local MenuCorner = Instance.new("UICorner")
+MenuCorner.CornerRadius = UDim.new(0, 8)
+MenuCorner.Parent = MenuFrame
+
+local MenuTitle = Instance.new("TextLabel")
+MenuTitle.Size = UDim2.new(1, 0, 0, 30)
+MenuTitle.BackgroundTransparency = 1
+MenuTitle.Text = "Control Panel"
+MenuTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
+MenuTitle.Font = Enum.Font.GothamSemibold
+MenuTitle.TextSize = 15
+MenuTitle.Parent = MenuFrame
+
+-- Time Stop Button
+local TimeStopButton = Instance.new("TextButton")
+TimeStopButton.Name = "TimeStopButton"
+TimeStopButton.Size = UDim2.new(0.85, 0, 0, 40)
+TimeStopButton.Position = UDim2.new(0.075, 0, 0.45, 0)
+TimeStopButton.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+TimeStopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+TimeStopButton.Text = "Time Stop: OFF"
+TimeStopButton.Font = Enum.Font.GothamBold
+TimeStopButton.TextSize = 14
+TimeStopButton.Parent = MenuFrame
+
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 6)
+ButtonCorner.Parent = TimeStopButton
+
+-- Visual Effect Setup
+local ColorEffect = Instance.new("ColorCorrectionEffect")
+ColorEffect.Name = "DeltaTimeStopEffect"
+ColorEffect.Enabled = false
+ColorEffect.Parent = Lighting
+
+-- Time Stop Logic
+local function toggleTimeStop()
+	isTimeStopped = not isTimeStopped
+
+	if isTimeStopped then
+		TimeStopButton.Text = "Time Stop: ON"
+		TimeStopButton.BackgroundColor3 = Color3.fromRGB(40, 180, 80)
+		ColorEffect.Enabled = true
+		
+		TweenService:Create(ColorEffect, TweenInfo.new(0.5), {
+			Saturation = -1,
+			Contrast = 0.5,
+			TintColor = Color3.fromRGB(150, 180, 255)
+		}):Play()
+
+		for _, player in pairs(Players:GetPlayers()) do
+			if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+				player.Character.HumanoidRootPart.Anchored = true
+			end
+		end
+	else
+		TimeStopButton.Text = "Time Stop: OFF"
+		TimeStopButton.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+		
+		local tween = TweenService:Create(ColorEffect, TweenInfo.new(0.5), {
+			Saturation = 0,
+			Contrast = 0,
+			TintColor = Color3.fromRGB(255, 255, 255)
+		})
+		tween:Play()
+		tween.Completed:Connect(function()
+			if not isTimeStopped then
+				ColorEffect.Enabled = false
+			end
+		end)
+
+		for _, player in pairs(Players:GetPlayers()) do
+			if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+				player.Character.HumanoidRootPart.Anchored = false
+			end
+		end
+	end
+end
+
+-- Events
+TimeStopButton.MouseButton1Click:Connect(toggleTimeStop)
+ToggleButton.MouseButton1Click:Connect(function()
+	MenuFrame.Visible = not MenuFrame.Visible
+end)
