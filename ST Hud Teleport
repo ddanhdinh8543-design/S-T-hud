@@ -1,0 +1,56 @@
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "ST Teleport Suite",
+    LoadingTitle = "Rayfield UI",
+    LoadingSubtitle = "By you",
+    ConfigurationSaving = { Enabled = false },
+    Discord = { Enabled = false },
+    Theme = "Ocean"
+})
+
+local Tab = Window:CreateTab("Click TP", 4483362458)
+
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+local clickTPEnabled = false
+
+-- Lắng nghe sự kiện click chuột trái
+mouse.Button1Down:Connect(function()
+    if clickTPEnabled then
+        local char = player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        
+        -- Kiểm tra nếu có nhân vật và vị trí con trỏ chuột hợp lệ
+        if hrp and mouse.Hit then
+            -- Dịch chuyển đến điểm nhấp chuột (+ 3 stud chiều cao để tránh bị kẹt dưới sàn)
+            hrp.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0))
+        end
+    end
+end)
+
+-- Công tắc Bật / Tắt tính năng Click TP
+Tab:CreateToggle({
+    Name = "Click to Teleport",
+    CurrentValue = false,
+    Flag = "ClickTPToggle",
+    Callback = function(Value)
+        clickTPEnabled = Value
+        
+        if Value then
+            Rayfield:Notify({
+                Title = "Đã Bật",
+                Content = "Bấm chuột trái vào vị trí bất kỳ để dịch chuyển!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Đã Tắt",
+                Content = "Đã tắt tính năng Click to Teleport.",
+                Duration = 2,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
